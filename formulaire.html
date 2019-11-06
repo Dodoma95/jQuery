@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="fr">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Formulaire</title>
+    <!--integration dependance bootstrap a notre fichier html-->
+    <link rel="stylesheet" href="node_modules/bootstrap/dist/css/bootstrap.min.css">
+    <script src="node_modules/jquery/dist/jquery.min.js"></script>
+    <!--defer permet de différer le chargement du code js-->
+    <style>
+        ul {
+            list-style: none;
+        }
+
+        #header {
+            text-align: center;
+            font-size: 25px;
+        }
+
+        body {
+            background-color: darkgray;
+        }
+
+        #mouseEnter {
+            background-color: darkgray;
+        }
+    </style>
+
+    <script>
+        function Book(title) {
+            this.title = title;
+
+        }
+
+        Book.prototype.validate = function() {
+            var valid = true;
+
+            if (this.title.trim() == "") {
+                valid = false;
+            }
+            return valid;
+        }
+
+        renderTableRowHeader = function() {
+            //création de la ligne
+            var $rowHead = $("<tr></tr");
+            //creation de la case pour l'en tete
+            var $enTete = $("<th id='header'></th>");
+            //remplissage de l'en tete
+            $enTete.text("Titre des livres");
+            //ajout de la case dans la ligne
+            $rowHead.append($enTete);
+
+            return $rowHead;
+        }
+
+        Book.prototype.renderTableRow = function() {
+            //création de la ligne
+            var $row = $("<tr></tr");
+            //creation de la case pour le titre
+            var $titreCell = $("<td id='cell'></td>");
+            //remplissage du titre
+            $titreCell.text(this.title);
+            //ajout de la case dans la ligne
+            $row.append($titreCell);
+
+            return $row;
+        }
+        
+
+        var bookList = [];
+        //|| window.localStorage.getItem("bookList");
+        
+        //recupération des données éventuelles stockée en LocalStorage
+        var data = JSON.parse(window.localStorage.getItem("bookList")) || [];
+        
+        for(let item of data){
+            bookList.push(new Book(item.title));
+        }
+        
+
+        renderTable = function() {
+
+            var $table = $("<table class='table table-bordered table-striped table-dark' id='books'></table");
+            
+            $table.append(renderTableRowHeader());
+            // ajout des lignes a la table
+            for (let book of bookList) {
+                
+                $table.append(book.renderTableRow());
+            }
+
+            //Ajout de la table au DOM
+            $("body").append($table);
+        }
+
+        $(document).ready(function() {
+
+            //Affichage des livres
+            renderTable();
+
+
+            //Ciblage element du DOM
+            var $errorDiv = $("#errorDiv");
+
+            //Masquage des erreurs au chargement de la page           
+            $errorDiv.hide();
+
+            //Capture de l'événement de soumission du formulaire
+            $("#form").on("submit", function(e) {
+                //recupération de la saisie
+                e.preventDefault(); //Annulation de l'envoi du formulaire dans notre cas car pas définit
+                var title = $("#title").val();
+
+                //construction d'une instance de livre
+                var book = new Book(title);
+                console.log(book.title);
+
+                if (book.validate()) {
+                    bookList.push(book);
+                    console.log(bookList);
+                    //lorsque c'est valide il faut masquer le message d'erreur
+                    $errorDiv.hide();
+                    //$(".listeBook li").text(book.title);
+                    $("#title").val("");
+                    $("#title").focus();
+                    //ajout d'une ligne au tableau
+                    $("#books").append(book.renderTableRow());
+                    //Ajout du livre au localStorage
+                    window.localStorage.setItem("bookList", JSON.stringify(bookList));//transforme le tableau en chaine d'objet
+                } else {
+
+                    console.log("erreur");
+                    //Affichage des erreurs
+                    $errorDiv.show();
+                    $("#title").val("");
+                    $("#title").focus();
+                }
+
+
+                $("td").on("mouseenter", function() {
+                    $(this).css("background-color", "darkgray");
+                });
+                $("td").on("mouseleave", function() {
+                    $(this).css("background-color", "#343A40");
+                });
+                
+                $("td").on("dblclick", function() {
+                    $(this).remove();
+                    localStorage.removeItem("bookList");
+                });
+                
+            });
+
+        });
+    </script>
+</head>
+
+<body class="container-fluid">
+
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <div class="alert alert-danger mt-2" id="errorDiv">
+                Erreur de saisie
+            </div>
+            <form method="post" id="form">
+                <div class="form-group">
+
+                    <label for="title"></label>
+                    <input type="text" id="title" class="form-control" placeholder="saisir titre">
+                </div>
+                 <button class="btn btn-dark btn-block" type="submit">Valider</button>
+            </form>
+
+            <br>
+
+        </div>
+    </div>
+</body></html>
