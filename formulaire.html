@@ -40,10 +40,22 @@
 
             if (this.title.trim() == "") {
                 valid = false;
+                this.errorMessage = "Le titre ne peut être vide";
             }
 
             if (this.author.trim() == "") {
                 valid = false;
+                this.errorMessage = "L'auteur ne peut être vide";
+            }
+            // Il ne peut y avoir de doublon de livre
+            var titleToAdd = this.title;
+            var bookExists = bookList.some(function(item){
+                return item.title == titleToAdd;
+            })
+            
+            if(bookExists){
+                valid = false;
+                this.errorMessage = "Ce livre existe déjà";
             }
 
             return valid;
@@ -150,6 +162,7 @@
 
                     console.log("erreur");
                     //Affichage des erreurs
+                    $errorDiv.text(book.errorMessage);
                     $errorDiv.show();
                     $("#title").val("");
                     $("#title").focus();
